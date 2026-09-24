@@ -42,7 +42,7 @@ import { SummarySubmitPage } from './pages/SummarySubmitPage';
 import { DecisionPage } from './pages/DecisionPage';
 import { SignInPage } from './pages/SignInPage';
 import { SignUpPage } from './pages/SignUpPage';
-import { getAccessToken, saveLoanApplication, saveLoanDetailsDraft, savePersonalInfoDraft } from './api';
+import { clearAccessToken, getAccessToken, saveLoanApplication, saveLoanDetailsDraft, savePersonalInfoDraft } from './api';
 
 // Default empty state for a new application
 const defaultApplication: LoanApplication = {
@@ -61,6 +61,31 @@ const defaultApplication: LoanApplication = {
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   return getAccessToken() ? <>{children}</> : <Navigate to="/signin" replace />;
+}
+
+function LoanApplicationLayout({ children, onLogout }: { children: ReactNode; onLogout: () => void }) {
+  return (
+    <>
+      <header className="border-b border-gray-200 bg-white shadow-sm">
+        <div className="mx-auto flex max-w-2xl items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-6 w-6 text-primary-600" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+            </svg>
+            <span className="font-semibold text-gray-900">Pacific Bank</span>
+          </div>
+          <button
+            type="button"
+            onClick={onLogout}
+            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+          >
+            Log out
+          </button>
+        </div>
+      </header>
+      {children}
+    </>
+  );
 }
 
 /**
@@ -95,6 +120,11 @@ function LoanApp() {
     if (getAccessToken()) return true;
     navigate('/signin');
     return false;
+  }, [navigate]);
+
+  const handleLogout = useCallback(() => {
+    clearAccessToken();
+    navigate('/signin', { replace: true });
   }, [navigate]);
 
   // ============================================
@@ -213,7 +243,11 @@ function LoanApp() {
         <Route
           path="/apply"
           element={
-            <ProtectedRoute><PersonalInfoPage initialData={application.personalInfo} onComplete={handlePersonalInfoComplete} /></ProtectedRoute>
+            <ProtectedRoute>
+              <LoanApplicationLayout onLogout={handleLogout}>
+                <PersonalInfoPage initialData={application.personalInfo} onComplete={handlePersonalInfoComplete} />
+              </LoanApplicationLayout>
+            </ProtectedRoute>
           }
         />
 
@@ -221,7 +255,11 @@ function LoanApp() {
         <Route
           path="/loan-details"
           element={
-            <ProtectedRoute><LoanDetailsPage initialData={application.loanDetails} onComplete={handleLoanDetailsComplete} /></ProtectedRoute>
+            <ProtectedRoute>
+              <LoanApplicationLayout onLogout={handleLogout}>
+                <LoanDetailsPage initialData={application.loanDetails} onComplete={handleLoanDetailsComplete} />
+              </LoanApplicationLayout>
+            </ProtectedRoute>
           }
         />
 
@@ -229,19 +267,29 @@ function LoanApp() {
         <Route
           path="/summary"
           element={
-            <ProtectedRoute><SummarySubmitPage
-              personalInfo={application.personalInfo}
-              loanDetails={application.loanDetails}
-              onSubmit={handleSubmitApplication}
-              submissionError={submissionError}
-            /></ProtectedRoute>
+            <ProtectedRoute>
+              <LoanApplicationLayout onLogout={handleLogout}>
+                <SummarySubmitPage
+                  personalInfo={application.personalInfo}
+                  loanDetails={application.loanDetails}
+                  onSubmit={handleSubmitApplication}
+                  submissionError={submissionError}
+                />
+              </LoanApplicationLayout>
+            </ProtectedRoute>
           }
         />
 
         {/* Page 4: Decision Result */}
         <Route
           path="/decision"
-          element={<ProtectedRoute><DecisionPage onStartNew={handleStartNew} /></ProtectedRoute>}
+          element={
+            <ProtectedRoute>
+              <LoanApplicationLayout onLogout={handleLogout}>
+                <DecisionPage onStartNew={handleStartNew} />
+              </LoanApplicationLayout>
+            </ProtectedRoute>
+          }
         />
       </Routes>
     </div>
