@@ -20,9 +20,9 @@
  *    - DecisionPage reads the decision result from useLocation().state
  *    - This demonstrates one-time data transfer via router
  * 
- * ============================================
+ * ==============================================
  * DUMMY DECISION LOGIC
- * ============================================
+ * ==============================================
  * 
  * The loan is APPROVED if:
  *   - Amount <= 5000 AND term <= 24 months
