@@ -13,6 +13,7 @@
  * 2. CALLBACKS UP (Pages → App):
  *    - Each page has an `onComplete` callback prop
  *    - When user clicks "Next", page validates and calls onComplete(data)
+ * - This is an additiona comment
  *    - App receives the data and updates its central state
  * 
  * 3. ROUTER STATE (Summary → Decision):
